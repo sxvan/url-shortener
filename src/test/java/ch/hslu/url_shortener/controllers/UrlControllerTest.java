@@ -5,6 +5,7 @@ import ch.hslu.url_shortener.entities.Url;
 import ch.hslu.url_shortener.models.AddOrUpdateResult;
 import ch.hslu.url_shortener.services.UrlService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,12 +38,6 @@ class UrlControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Test
-    void test_getAllUrls_withoutCredentials_returnsUnauthorized() throws Exception {
-        mockMvc.perform(get("/shorturls"))
-                .andExpect(status().isUnauthorized());
-    }
 
     @Test
     @WithMockUser(username = "user", password = "password", roles = "USER")

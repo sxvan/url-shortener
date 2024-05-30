@@ -8,8 +8,26 @@ services:
     environment:
       SA_PASSWORD: "YourStrong!Password123"
       ACCEPT_EULA: "Y"
-#    volumes:
-#      - mssql-data:/var/opt/mssql
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - internal
 
-#volumes:
-#  mssql-data:
+  url-shortener:
+    container_name: url-shortener
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://mssql:1433;databaseName=url_shortener;encrypt=false;trustServerCertificate=true;
+    depends_on:
+      - mssql
+    networks:
+      - internal
+
+volumes:
+  mssql-data:
+
+networks:
+  internal:

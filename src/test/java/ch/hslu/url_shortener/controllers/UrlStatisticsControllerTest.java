@@ -1,5 +1,6 @@
 package ch.hslu.url_shortener.controllers;
 
+import ch.hslu.url_shortener.dtos.StatisticsDto;
 import ch.hslu.url_shortener.entities.Url;
 import ch.hslu.url_shortener.entities.UrlStatistics;
 import ch.hslu.url_shortener.services.UrlService;
@@ -45,9 +46,14 @@ class UrlStatisticsControllerTest {
                 new UrlStatistics(UUID.randomUUID(), 3, 3, OffsetDateTime.now())
         );
 
+        StatisticsDto statisticsDto = new StatisticsDto();
+        statisticsDto.setTotalNumberOfCalls(6);
+        statisticsDto.setAverageForwardDurationInMillis(2);
+        statisticsDto.setTimeOfLastCall(urlStatistics.stream().map(u -> u.getTimeOfLastCall()).max(OffsetDateTime::compareTo).get());
+
         when(urlStatisticsService.getAllUrlStatistics()).thenReturn(urlStatistics);
 
-        String expectedJson = objectMapper.writeValueAsString(urlStatistics);
+        String expectedJson = objectMapper.writeValueAsString(statisticsDto);
 
         mockMvc.perform(get("/statistics"))
                 .andExpect(status().isOk())

@@ -2,13 +2,13 @@ spring:
   application:
     name: url-shortener
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=url_shortener;encrypt=false;trustServerCertificate=true;
+    url: ${SPRING_DATASOURCE_URL:jdbc:sqlserver://localhost:1433;databaseName=url_shortener;encrypt=false;trustServerCertificate=true;}
     username: sa
     password: "YourStrong!Password123"
   jpa:
     generate-ddl: true
     hibernate:
-      dll-auto: create-drop
+      dll-auto: create
     show-sql: true
     properties:
       hibernate:
@@ -16,3 +16,7 @@ spring:
 
 url-shortener:
   redirect-delay-in-millis: 2000
+
+logging:
+  level:
+    org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration: DEBUG

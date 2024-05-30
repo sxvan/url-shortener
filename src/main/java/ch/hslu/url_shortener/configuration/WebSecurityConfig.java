@@ -21,7 +21,7 @@ public class WebSecurityConfig {
         http
                 .authorizeHttpRequests((requests) -> requests
                         // arrow redirects for all
-                        .requestMatchers(Routes.REDIRECT).permitAll()
+                        .requestMatchers(Routes.REDIRECT + "/*").permitAll()
                         // everything else requires authentication
                         .anyRequest().authenticated()
                 )

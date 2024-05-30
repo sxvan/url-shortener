@@ -2,6 +2,7 @@ package ch.hslu.url_shortener.controllers;
 
 import ch.hslu.url_shortener.dtos.UrlDto;
 import ch.hslu.url_shortener.entities.Url;
+import ch.hslu.url_shortener.entities.UrlStatistics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,17 +20,17 @@ import org.testcontainers.containers.MSSQLServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc()
-class UrlControllerIT {
-
+class UrlStatisticsControllerIT {
     @Autowired
     private MockMvc mockMvc;
 
@@ -59,6 +60,10 @@ class UrlControllerIT {
     @Test
     @WithMockUser(username = "user", password = "password", roles = "USER")
     void test_urlControllerCRUDOperations() throws Exception {
+        mockMvc.perform(get("/statistics"))
+                .andExpect(status().isOk())
+                .andExpect((jsonPath("$.totalNumberOfCalls").value(0)));
+
         Url url = new Url(UUID.randomUUID(), "test", "test");
         UrlDto urlDto = new UrlDto();
         urlDto.setShortUrl(url.getShortUrl());
@@ -68,8 +73,8 @@ class UrlControllerIT {
         String expectedJson = objectMapper.writeValueAsString(url);
 
         mockMvc.perform(put("/shorturls/" + url.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(expectedJson));
 
@@ -77,26 +82,49 @@ class UrlControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedJson));
 
-        urlDto.setLongUrl("test2");
-        url = new Url(url.getId(), urlDto.getShortUrl(), urlDto.getLongUrl());
+        int callCount = 5;
+        for (int i = 0; i < callCount; i++) {
+            mockMvc.perform(get("/a/" + url.getShortUrl()))
+                    .andExpect(status().isOk());
+        }
+
+        mockMvc.perform(get("/shorturls/" + url.getId() + "/statistics"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalNumberOfCalls").value(callCount));
+
+        mockMvc.perform(get("/statistics"))
+                .andExpect(status().isOk())
+                .andExpect((jsonPath("$.totalNumberOfCalls").value(callCount)));
+
+        url = new Url(UUID.randomUUID(), "test2", "test2");
+        urlDto = new UrlDto();
+        urlDto.setShortUrl(url.getShortUrl());
+        urlDto.setLongUrl(url.getLongUrl());
+
         body = objectMapper.writeValueAsString(urlDto);
         expectedJson = objectMapper.writeValueAsString(url);
 
         mockMvc.perform(put("/shorturls/" + url.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-                .andExpect(status().isOk())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated())
                 .andExpect(content().string(expectedJson));
-
 
         mockMvc.perform(get("/shorturls/" + url.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedJson));
 
-        mockMvc.perform(delete("/shorturls/" + url.getId()))
-                .andExpect(status().isOk());
+        for (int i = 0; i < callCount; i++) {
+            mockMvc.perform(get("/a/" + url.getShortUrl()))
+                    .andExpect(status().isOk());
+        }
 
-        mockMvc.perform(get("/shorturls/" + url.getId()))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/shorturls/" + url.getId() + "/statistics"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalNumberOfCalls").value(callCount));
+
+        mockMvc.perform(get("/statistics"))
+                .andExpect(status().isOk())
+                .andExpect((jsonPath("$.totalNumberOfCalls").value(callCount * 2)));
     }
 }
