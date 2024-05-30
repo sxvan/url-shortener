@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <script th:inline="javascript">
+        setTimeout(function() {
+            document.location.href = /*[[${url}]]*/;
+        }, /*[[${timeout}]]*/);
+    </script>
+    <title>Url Shortener - Ad</title>
+</head>
+<body>
+    <h1>This is a very good ad. You will be redirected soon...</h1>
+</body>
+</html>
